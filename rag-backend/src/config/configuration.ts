@@ -2,7 +2,7 @@ export default () => ({
   port: parseInt(process.env.PORT ?? '3001', 10),
   frontendOrigin: (process.env.FRONTEND_ORIGIN ?? 'http://localhost:3000')
     .split(',')
-    .map((origin) => origin.trim()),
+    .map((origin) => origin.trim().replace(/\/+$/, '')),
 
   llm: {
     apiKey: process.env.OPENAI_API_KEY,

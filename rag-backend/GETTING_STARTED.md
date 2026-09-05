@@ -158,4 +158,18 @@ Set `NEXT_PUBLIC_BACKEND_URL` in the frontend's env to this backend's URL. Make 
    - Start command: `npm run start:prod`
    - Plan: Free
 3. Add the environment variables from `.env.example` in Render's dashboard (or use the included `render.yaml` as a Blueprint).
-4. Set `FRONTEND_ORIGIN` to your deployed Next.js URL, and update `NEXT_PUBLIC_BACKEND_URL` in the frontend to this Render service's URL.
+4. Set `FRONTEND_ORIGIN` to your deployed frontend's URL, and update `NEXT_PUBLIC_BACKEND_URL` in the frontend to this Render service's URL.
+
+### If deploying the frontend on Vercel
+
+Vercel gives you two kinds of URLs:
+- A **stable production domain** (Project → Settings → Domains, looks like `https://your-app.vercel.app`) — always points at your latest production deploy.
+- A **preview URL per deployment** (looks like `https://your-app-<random-hash>-<team>.vercel.app`) — a **new one every time you push**, e.g. for PR previews.
+
+Use the stable production domain for `FRONTEND_ORIGIN` normally. If you also need preview deployments to work, add a wildcard pattern (`*` matches anything) alongside it — this backend's CORS config supports it:
+
+```
+FRONTEND_ORIGIN=https://your-app.vercel.app,https://your-app-*-your-team.vercel.app
+```
+
+**Common symptom if this is misconfigured**: in the browser's Network tab, the `OPTIONS /chat` preflight still shows `204 No Content` (that always "succeeds"), but the actual `POST /chat` is blocked by the browser and never completes — check for a missing `Access-Control-Allow-Origin` header on the OPTIONS response, or check Render's logs for a `[CORS] Rejected request from origin "..."` line, which tells you exactly what to add to `FRONTEND_ORIGIN`.
