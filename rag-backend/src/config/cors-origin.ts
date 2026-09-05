@@ -35,6 +35,16 @@ export function createCorsOriginCheck(
       `Rejected request from origin "${origin}" — not in FRONTEND_ORIGIN (${allowedPatterns.join(', ')}). ` +
         'Add it to FRONTEND_ORIGIN if this should be allowed.',
     );
-    return callback(null, false);
+    // NOTE: must NOT pass `false` here. The `cors` package treats a falsy
+    // second callback argument as "skip CORS handling entirely" and calls
+    // next() without ever responding to the preflight — which then falls
+    // through to Nest's router, and since there's no OPTIONS handler on the
+    // route, that becomes a confusing 404 ("Cannot OPTIONS /chat") instead
+    // of a clean CORS rejection. Passing an empty array is truthy (so `cors`
+    // still fully handles + terminates the OPTIONS request with 204) while
+    // still failing origin-matching internally, so no Access-Control-Allow-
+    // Origin header gets added — the browser blocks it as a normal, clearly
+    // diagnosable CORS rejection instead.
+    return callback(null, []);
   };
 }
